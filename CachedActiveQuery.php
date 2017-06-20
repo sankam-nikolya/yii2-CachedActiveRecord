@@ -11,6 +11,31 @@ use yii\db\Connection;
 class CachedActiveQuery extends ActiveQuery
 {
     /**
+     * @var int $duration the number of seconds that query results can remain valid in the cache. If this is
+     * not set, the value of [[queryCacheDuration]] will be used instead.
+     */
+    public $duration=null;
+
+
+    /**
+     * @var \yii\caching\Dependency|array $dependency the cache dependency associated with the cached query results.
+     */
+
+    public $dependency=null;
+
+    /**
+     * init
+     */
+    public function init()
+    {
+        parent::init();
+
+        if (is_array($this->dependency)) {
+            $this->dependency = Yii::createObject($this->dependency);
+        }
+    }
+
+    /**
      * When query caching is available return caching,
      * If not,Executes query and generates caching then returns all results .
      * @param Connection $db the DB connection used to create the DB command.
@@ -24,7 +49,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         $row = Yii::$app->getDb()->cache(function (Connection $db) {
             return parent::one($db);
-        });
+        },$this->duration, $this->dependency);
         if (!empty($row)) {
             $models = $this->populate([$row]);
             return reset($models) ?: null;
@@ -45,7 +70,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) {
             return parent::all($db);
-        });
+        },$this->duration, $this->dependency);
     }
 
     /**
@@ -60,7 +85,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) {
             return parent::scalar($db);
-        });
+        },$this->duration, $this->dependency);
     }
 
     /**
@@ -76,7 +101,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) use ($q) {
             return parent::count($q, $db);
-        });
+        },$this->duration, $this->dependency);
     }
 
     /**
@@ -91,7 +116,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) use ($q) {
             return parent::sum($q, $db);
-        });
+        },$this->duration, $this->dependency);
     }
 
     /**
@@ -106,7 +131,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) use ($q) {
             return parent::average($q, $db);
-        });
+        },$this->duration, $this->dependency);
     }
 
     /**
@@ -121,7 +146,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) use ($q) {
             return parent::min($q, $db);
-        });
+        },$this->duration, $this->dependency);
     }
 
     /**
@@ -136,7 +161,7 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) use ($q) {
             return parent::max($q, $db);
-        });
+        },$this->duration, $this->dependency);
     }
 
     /**
@@ -149,6 +174,6 @@ class CachedActiveQuery extends ActiveQuery
     {
         return Yii::$app->getDb()->cache(function (Connection $db) {
             return parent::exists($db);
-        });
+        },$this->duration, $this->dependency);
     }
 }
